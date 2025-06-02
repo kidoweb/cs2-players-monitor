@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import logging
 import os
 
-app = Flask(__name__, template_folder='../templates')
+app = Flask(__name__, template_folder='templates')
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -221,9 +221,9 @@ def health_check():
                      if players_cache['last_update'] else None
     })
 
-# Для Vercel
-def handler(request):
-    return app(request.environ, lambda *args: None)
+# Для локального запуска
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
 # Экспорт для Vercel
-app.wsgi_app = handler 
+application = app 
