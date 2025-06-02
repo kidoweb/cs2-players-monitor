@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Мониторинг игроков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .server-info {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .server-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .server-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .players-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .players-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .players-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .players-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .players-table th,
+        .players-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .players-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .players-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .player-score {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .player-time {
+            color: #666;
+        }
+
+        .player-ping {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .player-ping[data-ping="high"] {
+            color: #dc3545;
+        }
+
+        .player-ping[data-ping="medium"] {
+            color: #ffc107;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success {
+            background: #51cf66;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .last-update {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            .players-table {
+                font-size: 0.9rem;
+            }
+
+            .players-table th,
+            .players-table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 CS2 Мониторинг игроков</h1>
+            <p>Отслеживайте игроков на вашем сервере Counter-Strike 2 в реальном времени</p>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="server-ip">IP-адрес сервера:</label>
+                    <input type="text" id="server-ip" value="127.0.0.1" placeholder="Введите IP сервера">
+                </div>
+                <div class="input-field">
+                    <label for="server-port">Порт:</label>
+                    <input type="number" id="server-port" value="27015" placeholder="27015">
+                </div>
+            </div>
+            <div>
+                <button class="btn" onclick="loadPlayers()">🔄 Обновить данные</button>
+                <button class="btn" onclick="loadPlayers(true)">⚡ Принудительное обновление</button>
+                <button class="btn" onclick="toggleAutoRefresh()">🔄 Авто-обновление: <span id="auto-status">Выкл</span></button>
+            </div>
+        </div>
+
+        <div id="server-info" class="server-info" style="display: none;">
+            <h2>ℹ️ Информация о сервере</h2>
+            <div class="server-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Название сервера</div>
+                    <div class="stat-value" id="server-name">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Карта</div>
+                    <div class="stat-value" id="server-map">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Игроков</div>
+                    <div class="stat-value" id="server-players">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Игра</div>
+                    <div class="stat-value" id="server-game">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Версия</div>
+                    <div class="stat-value" id="server-version">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">VAC</div>
+                    <div class="stat-value" id="server-vac">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="players-section">
+            <div class="players-header">
+                <h2>👥 Игроки онлайн</h2>
+                <div class="players-count" id="players-count">0 игроков</div>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                Загрузка данных...
+            </div>
+            
+            <div id="error-message"></div>
+            
+            <div id="players-container">
+                <div class="empty-state">
+                    Нажмите "Обновить данные" для получения списка игроков
+                </div>
+            </div>
+            
+            <div id="last-update" class="last-update"></div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefreshEnabled = false;
+
+        async function loadPlayers(forceRefresh = false) {
+            const serverIp = document.getElementById('server-ip').value.trim();
+            const serverPort = document.getElementById('server-port').value.trim();
+            
+            if (!serverIp || !serverPort) {
+                showError('Пожалуйста, введите IP-адрес и порт сервера');
+                return;
+            }
+
+            showLoading(true);
+            clearError();
+
+            try {
+                const params = new URLSearchParams({
+                    server_ip: serverIp,
+                    server_port: serverPort,
+                    force_refresh: forceRefresh.toString()
+                });
+
+                const response = await fetch(`/api/players?${params}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+
+                displayPlayers(data.players);
+                displayServerInfo(data.server_info);
+                updateLastUpdateTime(data.last_update, data.cached);
+                
+                if (!data.cached) {
+                    showSuccess('Данные успешно обновлены!');
+                }
+
+            } catch (error) {
+                console.error('Ошибка при загрузке данных:', error);
+                showError(`Ошибка загрузки: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayPlayers(players) {
+            const container = document.getElementById('players-container');
+            const countElement = document.getElementById('players-count');
+            
+            countElement.textContent = `${players.length} игроков`;
+
+            if (players.length === 0) {
+                container.innerHTML = '<div class="empty-state">На сервере нет игроков</div>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'players-table';
+            
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Никнейм</th>
+                        <th>Счет</th>
+                        <th>Время в игре</th>
+                        <th>Подключен</th>
+                        <th>Пинг</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${players.map((player, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td class="player-name">${escapeHtml(player.name)}</td>
+                            <td class="player-score">${player.score}</td>
+                            <td class="player-time">${player.duration_formatted || formatDuration(player.duration)}</td>
+                            <td class="player-time">${player.time_connected || formatDuration(player.duration)}</td>
+                            <td class="player-ping">${player.ping !== 'N/A' ? player.ping + 'ms' : 'N/A'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function displayServerInfo(serverInfo) {
+            if (!serverInfo) return;
+            
+            document.getElementById('server-name').textContent = serverInfo.name || 'Неизвестно';
+            document.getElementById('server-map').textContent = serverInfo.map || 'Неизвестно';
+            document.getElementById('server-players').textContent = serverInfo.players || 'Неизвестно';
+            document.getElementById('server-game').textContent = serverInfo.game || 'Неизвестно';
+            document.getElementById('server-version').textContent = serverInfo.version || 'Неизвестно';
+            document.getElementById('server-vac').textContent = serverInfo.vac_enabled ? 'Включен' : 'Выключен';
+            
+            document.getElementById('server-info').style.display = 'block';
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            if (hours > 0) {
+                return `${hours}ч ${minutes}м ${secs}с`;
+            } else if (minutes > 0) {
+                return `${minutes}м ${secs}с`;
+            } else {
+                return `${secs}с`;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showSuccess(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.innerHTML = `<div class="success">${message}</div>`;
+            setTimeout(() => {
+                errorElement.innerHTML = '';
+            }, 3000);
+        }
+
+        function clearError() {
+            document.getElementById('error-message').innerHTML = '';
+        }
+
+        function updateLastUpdateTime(lastUpdate, cached) {
+            const element = document.getElementById('last-update');
+            if (lastUpdate) {
+                const date = new Date(lastUpdate);
+                const status = cached ? '(из кэша)' : '(новые данные)';
+                element.textContent = `Последнее обновление: ${date.toLocaleString('ru')} ${status}`;
+            }
+        }
+
+        function toggleAutoRefresh() {
+            if (isAutoRefreshEnabled) {
+                clearInterval(autoRefreshInterval);
+                isAutoRefreshEnabled = false;
+                document.getElementById('auto-status').textContent = 'Выкл';
+            } else {
+                autoRefreshInterval = setInterval(() => loadPlayers(), 30000); // Обновление каждые 30 секунд
+                isAutoRefreshEnabled = true;
+                document.getElementById('auto-status').textContent = 'Вкл';
+            }
+        }
+
+        // Горячие клавиши
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault();
+                loadPlayers(true);
+            }
+        });
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('CS2 Мониторинг игроков готов к работе!');
+            console.log('Горячие клавиши: Ctrl+R - принудительное обновление');
+        });
+    </script>
+</body>
+</html> 
