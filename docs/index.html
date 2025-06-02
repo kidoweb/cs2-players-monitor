@@ -109,6 +109,24 @@
             </div>
         </div>
 
+        <!-- API Info Panel -->
+        <div class="api-info-panel">
+            <h2>🔌 API Использование</h2>
+            <p>Этот сайт также работает как API! Добавьте <code>?format=json</code> для получения JSON данных:</p>
+            <div class="api-examples">
+                <div class="api-example">
+                    <strong>Получить JSON данные:</strong><br>
+                    <code id="apiExampleUrl">https://kidoweb.github.io/cs2-players-monitor/?format=json</code>
+                    <button class="btn-copy" onclick="copyToClipboard('apiExampleUrl')">📋</button>
+                </div>
+                <div class="api-example">
+                    <strong>С конкретным сервером:</strong><br>
+                    <code id="apiExampleServer">https://kidoweb.github.io/cs2-players-monitor/?format=json&server_ip=46.174.49.96&server_port=27015</code>
+                    <button class="btn-copy" onclick="copyToClipboard('apiExampleServer')">📋</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Подвал -->
         <footer class="footer">
             <p>

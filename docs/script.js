@@ -9,6 +9,13 @@ class CS2Monitor {
         this.refreshCount = 0;
         this.lastUpdateTime = null;
         
+        // Проверяем, нужен ли API режим
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('format') === 'json') {
+            this.initAPIMode(urlParams);
+            return;
+        }
+        
         this.initElements();
         this.bindEvents();
         this.loadSettings();
@@ -16,6 +23,81 @@ class CS2Monitor {
         
         // Автоматическая загрузка при старте
         this.refreshData();
+    }
+
+    async initAPIMode(urlParams) {
+        // API режим - возвращаем JSON данные
+        const serverIp = urlParams.get('server_ip') || '46.174.49.96';
+        const serverPort = urlParams.get('server_port') || '27015';
+        const forceRefresh = urlParams.get('force_refresh') === 'true';
+        const apiUrl = urlParams.get('api_url') || 'https://cs2-gghub-monitor.vercel.app';
+
+        try {
+            const params = new URLSearchParams({
+                server_ip: serverIp,
+                server_port: serverPort
+            });
+
+            if (forceRefresh) {
+                params.append('force_refresh', 'true');
+            }
+
+            const response = await fetch(`${apiUrl}/api/players?${params}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                signal: AbortSignal.timeout(30000)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            this.outputJSON(data);
+
+        } catch (error) {
+            const errorResponse = {
+                success: false,
+                error: error.message,
+                players: [],
+                server_info: null,
+                cached: false,
+                timestamp: new Date().toISOString()
+            };
+            this.outputJSON(errorResponse);
+        }
+    }
+
+    outputJSON(data) {
+        // Очищаем страницу и показываем только JSON
+        document.head.innerHTML = `
+            <meta charset="UTF-8">
+            <title>CS2 Players Monitor API Response</title>
+            <style>
+                body { 
+                    font-family: monospace; 
+                    background: #1a1a1a; 
+                    color: #00ff00; 
+                    margin: 0; 
+                    padding: 20px; 
+                }
+                pre { 
+                    background: #000; 
+                    padding: 15px; 
+                    border-radius: 5px; 
+                    overflow-x: auto; 
+                    white-space: pre-wrap;
+                    margin: 0;
+                }
+            </style>
+        `;
+        
+        document.body.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        
+        // Устанавливаем заголовок как JSON тип контента
+        document.title = 'CS2 Players Monitor API - JSON Response';
     }
 
     initElements() {
@@ -315,6 +397,25 @@ class CS2Monitor {
         div.textContent = text;
         return div.innerHTML;
     }
+}
+
+// Функция для копирования в буфер обмена
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        // Временно меняем текст кнопки
+        const button = element.nextElementSibling;
+        const originalText = button.textContent;
+        button.textContent = '✅';
+        button.style.background = '#10b981';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    });
 }
 
 // Инициализация приложения

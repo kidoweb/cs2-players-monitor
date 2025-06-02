@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Players Monitor API</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #1a1a1a; 
+            color: #00ff00; 
+            padding: 20px; 
+            margin: 0;
+        }
+        .loading { text-align: center; padding: 50px; }
+        .error { color: #ff0000; }
+        pre { background: #000; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div id="response">
+        <div class="loading">⏳ Загрузка данных...</div>
+    </div>
+
+    <script>
+        class CS2API {
+            constructor() {
+                this.apiUrl = 'https://cs2-gghub-monitor.vercel.app';
+                this.defaultServerIp = '46.174.49.96';
+                this.defaultServerPort = '27015';
+                
+                this.init();
+            }
+
+            init() {
+                // Получаем параметры из URL
+                const params = new URLSearchParams(window.location.search);
+                const serverIp = params.get('server_ip') || this.defaultServerIp;
+                const serverPort = params.get('server_port') || this.defaultServerPort;
+                const forceRefresh = params.get('force_refresh') === 'true';
+                const format = params.get('format') || 'json';
+
+                // Если запрошен не JSON, показываем HTML интерфейс
+                if (format !== 'json') {
+                    this.showHtmlInterface();
+                    return;
+                }
+
+                this.fetchData(serverIp, serverPort, forceRefresh);
+            }
+
+            async fetchData(serverIp, serverPort, forceRefresh) {
+                try {
+                    const params = new URLSearchParams({
+                        server_ip: serverIp,
+                        server_port: serverPort
+                    });
+
+                    if (forceRefresh) {
+                        params.append('force_refresh', 'true');
+                    }
+
+                    const response = await fetch(`${this.apiUrl}/api/players?${params}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        signal: AbortSignal.timeout(30000)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+
+                    // Устанавливаем заголовок Content-Type для JSON (если возможно)
+                    try {
+                        document.querySelector('meta[name="content-type"]')?.setAttribute('content', 'application/json');
+                    } catch (e) {}
+
+                    this.displayJSON(data);
+
+                } catch (error) {
+                    const errorResponse = {
+                        success: false,
+                        error: error.message,
+                        players: [],
+                        server_info: null,
+                        cached: false,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.displayJSON(errorResponse);
+                }
+            }
+
+            displayJSON(data) {
+                const responseDiv = document.getElementById('response');
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                // Устанавливаем заголовок документа как JSON
+                document.title = 'CS2 Players Monitor API - JSON Response';
+            }
+
+            showHtmlInterface() {
+                const responseDiv = document.getElementById('response');
+                responseDiv.innerHTML = `
+                    <h1>🎮 CS2 Players Monitor API</h1>
+                    <p>Этот эндпоинт возвращает JSON данные о CS2 сервере и игроках.</p>
+                    
+                    <h2>📖 Использование:</h2>
+                    <pre>GET ${window.location.origin}${window.location.pathname}?format=json&server_ip=46.174.49.96&server_port=27015</pre>
+                    
+                    <h2>📋 Параметры:</h2>
+                    <ul>
+                        <li><strong>format</strong> - "json" для получения JSON ответа</li>
+                        <li><strong>server_ip</strong> - IP адрес CS2 сервера (по умолчанию: 46.174.49.96)</li>
+                        <li><strong>server_port</strong> - порт сервера (по умолчанию: 27015)</li>
+                        <li><strong>force_refresh</strong> - "true" для принудительного обновления</li>
+                    </ul>
+                    
+                    <h2>🔗 Примеры:</h2>
+                    <ul>
+                        <li><a href="?format=json">Получить данные (JSON)</a></li>
+                        <li><a href="?format=json&force_refresh=true">Принудительное обновление (JSON)</a></li>
+                        <li><a href="?format=json&server_ip=127.0.0.1&server_port=27015">Другой сервер (JSON)</a></li>
+                    </ul>
+                    
+                    <h2>📄 Пример ответа:</h2>
+                    <pre>{
+  "success": true,
+  "players": [
+    {
+      "name": "Player1",
+      "score": 15,
+      "duration": 754.23,
+      "duration_formatted": "12м 34с",
+      "ping": "25",
+      "time_connected": "12 минут 34 секунды"
+    }
+  ],
+  "server_info": {
+    "name": "My CS2 Server",
+    "map": "de_dust2", 
+    "players": "12/20",
+    "game": "Counter-Strike 2",
+    "vac_enabled": true,
+    "version": "1.39.5.5"
+  },
+  "cached": false,
+  "last_update": "2024-01-20T15:30:45.123456"
+}</pre>
+
+                    <p><a href="../">← Вернуться к веб-интерфейсу</a></p>
+                `;
+            }
+        }
+
+        // Инициализация API
+        document.addEventListener('DOMContentLoaded', () => {
+            new CS2API();
+        });
+    </script>
+</body>
+</html> 
