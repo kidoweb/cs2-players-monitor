@@ -1,4 +1,5 @@
 {
+  "name": "cs2-gghub-monitor",
   "version": 2,
   "builds": [
     {
