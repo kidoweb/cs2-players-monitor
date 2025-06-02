@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Players Monitor - GitHub Pages</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <header class="header">
+            <h1>🎮 CS2 Players Monitor</h1>
+            <p class="subtitle">Мониторинг игроков Counter-Strike 2 в реальном времени</p>
+        </header>
+
+        <!-- Настройки подключения -->
+        <div class="config-panel">
+            <h2>⚙️ Настройки сервера</h2>
+            <div class="config-form">
+                <div class="input-group">
+                    <label for="serverIp">IP-адрес сервера:</label>
+                    <input type="text" id="serverIp" value="46.174.49.96" placeholder="127.0.0.1">
+                </div>
+                <div class="input-group">
+                    <label for="serverPort">Порт:</label>
+                    <input type="number" id="serverPort" value="27015" placeholder="27015">
+                </div>
+                <div class="input-group">
+                    <label for="apiUrl">API URL:</label>
+                    <input type="text" id="apiUrl" value="https://cs2-gghub-monitor.vercel.app" placeholder="https://cs2-gghub-monitor.vercel.app">
+                </div>
+                <div class="button-group">
+                    <button id="refreshBtn" class="btn btn-primary">🔄 Обновить</button>
+                    <button id="forceRefreshBtn" class="btn btn-secondary">⚡ Принудительно</button>
+                    <button id="autoRefreshBtn" class="btn btn-toggle" data-active="false">📡 Авто-обновление</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статус подключения -->
+        <div class="status-panel">
+            <div id="connectionStatus" class="status">
+                <span class="status-icon">⏳</span>
+                <span class="status-text">Готов к подключению</span>
+            </div>
+            <div class="last-update">
+                <span id="lastUpdateTime">Последнее обновление: никогда</span>
+            </div>
+        </div>
+
+        <!-- Информация о сервере -->
+        <div class="server-info-panel">
+            <h2>🖥️ Информация о сервере</h2>
+            <div id="serverInfo" class="server-info">
+                <div class="info-item">
+                    <strong>Название:</strong> <span id="serverName">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Карта:</strong> <span id="serverMap">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Игроки:</strong> <span id="serverPlayers">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Игра:</strong> <span id="serverGame">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>VAC:</strong> <span id="serverVac">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Версия:</strong> <span id="serverVersion">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список игроков -->
+        <div class="players-panel">
+            <h2>👥 Игроки онлайн</h2>
+            <div id="playersContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка данных...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-panel">
+            <h2>📊 Статистика</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalPlayers">0</div>
+                    <div class="stat-label">Всего игроков</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="topScore">0</div>
+                    <div class="stat-label">Лучший счёт</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgTime">0м</div>
+                    <div class="stat-label">Среднее время</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="refreshCount">0</div>
+                    <div class="stat-label">Обновлений</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Подвал -->
+        <footer class="footer">
+            <p>
+                🚀 Развернуто на GitHub Pages | 
+                🔗 <a href="https://github.com/kidoweb/cs2-players-monitor" target="_blank">GitHub</a> | 
+                📡 <a href="#" id="apiLinkFooter" target="_blank">API</a>
+            </p>
+            <p class="version">v1.0 - CS2 Players Monitor</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

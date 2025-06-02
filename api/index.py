@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
 import a2s
 import time
 import threading
@@ -7,6 +8,9 @@ import logging
 import os
 
 app = Flask(__name__, template_folder='templates')
+
+# Настройка CORS для работы с фронтендом
+CORS(app, origins=['*'])
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
